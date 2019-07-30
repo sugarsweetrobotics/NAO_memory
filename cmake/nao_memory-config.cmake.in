@@ -1,0 +1,54 @@
+# NAO_memory CMake config file
+#
+# This file sets the following variables:
+# NAO_memory_FOUND - Always TRUE.
+# NAO_memory_INCLUDE_DIRS - Directories containing the NAO_memory include files.
+# NAO_memory_IDL_DIRS - Directories containing the NAO_memory IDL files.
+# NAO_memory_LIBRARIES - Libraries needed to use NAO_memory.
+# NAO_memory_DEFINITIONS - Compiler flags for NAO_memory.
+# NAO_memory_VERSION - The version of NAO_memory found.
+# NAO_memory_VERSION_MAJOR - The major version of NAO_memory found.
+# NAO_memory_VERSION_MINOR - The minor version of NAO_memory found.
+# NAO_memory_VERSION_REVISION - The revision version of NAO_memory found.
+# NAO_memory_VERSION_CANDIDATE - The candidate version of NAO_memory found.
+
+message(STATUS "Found NAO_memory-@PROJECT_VERSION@")
+set(NAO_memory_FOUND TRUE)
+
+find_package(<dependency> REQUIRED)
+
+#set(NAO_memory_INCLUDE_DIRS
+#    "@CMAKE_INSTALL_PREFIX@/include/@PROJECT_NAME_LOWER@-@PROJECT_VERSION_MAJOR@"
+#    ${<dependency>_INCLUDE_DIRS}
+#    )
+#
+#set(NAO_memory_IDL_DIRS
+#    "@CMAKE_INSTALL_PREFIX@/include/@PROJECT_NAME_LOWER@-@PROJECT_VERSION_MAJOR@/idl")
+set(NAO_memory_INCLUDE_DIRS
+    "@CMAKE_INSTALL_PREFIX@/include/@CPACK_PACKAGE_FILE_NAME@"
+    ${<dependency>_INCLUDE_DIRS}
+    )
+set(NAO_memory_IDL_DIRS
+    "@CMAKE_INSTALL_PREFIX@/include/@CPACK_PACKAGE_FILE_NAME@/idl")
+
+
+if(WIN32)
+    set(NAO_memory_LIBRARIES
+        "@CMAKE_INSTALL_PREFIX@/@LIB_INSTALL_DIR@/@CMAKE_SHARED_LIBRARY_PREFIX@@PROJECT_NAME_LOWER@@CMAKE_STATIC_LIBRARY_SUFFIX@"
+        ${<dependency>_LIBRARIES}
+        )
+else(WIN32)
+    set(NAO_memory_LIBRARIES
+        "@CMAKE_INSTALL_PREFIX@/@LIB_INSTALL_DIR@/@CMAKE_SHARED_LIBRARY_PREFIX@@PROJECT_NAME_LOWER@@CMAKE_SHARED_LIBRARY_SUFFIX@"
+        ${<dependency>_LIBRARIES}
+        )
+endif(WIN32)
+
+set(NAO_memory_DEFINITIONS ${<dependency>_DEFINITIONS})
+
+set(NAO_memory_VERSION @PROJECT_VERSION@)
+set(NAO_memory_VERSION_MAJOR @PROJECT_VERSION_MAJOR@)
+set(NAO_memory_VERSION_MINOR @PROJECT_VERSION_MINOR@)
+set(NAO_memory_VERSION_REVISION @PROJECT_VERSION_REVISION@)
+set(NAO_memory_VERSION_CANDIDATE @PROJECT_VERSION_CANDIDATE@)
+

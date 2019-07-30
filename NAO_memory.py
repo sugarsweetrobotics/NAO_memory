@@ -17,6 +17,7 @@ sys.path.append(".")
 import RTC
 import OpenRTM_aist
 
+import naoqi
 
 # Import Service implementation class
 # <rtc-template block="service_impl">
@@ -63,11 +64,17 @@ class NAO_memory(OpenRTM_aist.DataFlowComponentBase):
 	def __init__(self, manager):
 		OpenRTM_aist.DataFlowComponentBase.__init__(self, manager)
 
-		data_arg = [None] * ((len(RTC._d_TimedString) - 4) / 2)
-		self._d_data = RTC.TimedString(*data_arg)
+		data_arg0 = [None] * ((len(RTC._d_TimedString) - 4) / 2)
+		self._d_data = RTC.TimedString(*data_arg0)
 		"""
 		"""
 		self._dataIn = OpenRTM_aist.InPort("data", self._d_data)
+
+		data_arg1 = [None] * ((len(RTC._d_TimedString) - 4) / 2)
+		self._d_e_data = RTC.TimedString(*data_arg1)
+		"""
+		"""
+		self._extOut = OpenRTM_aist.OutPort("output", self._d_e_data)
 
 
 		
@@ -80,7 +87,8 @@ class NAO_memory(OpenRTM_aist.DataFlowComponentBase):
 		 - Name:  key
 		 - DefaultValue: nao_memory
 		"""
-		self._key = ['nao_memory']
+		self._insert_key = ['nao_memory_from_RTM']
+		self._extract_key = ['']
 		
 		# </rtc-template>
 
@@ -161,9 +169,9 @@ class NAO_memory(OpenRTM_aist.DataFlowComponentBase):
 	#	# @return RTC::ReturnCode_t
 	#	#
 	#	#
-	#def onActivated(self, ec_id):
-	#
-	#	return RTC.RTC_OK
+	def onActivated(self, ec_id):
+		self._proxy = ALProxy("ALMemory", self._ipaddress[0], self._port[0])
+		return RTC.RTC_OK
 	
 	#	##
 	#	#
@@ -175,9 +183,9 @@ class NAO_memory(OpenRTM_aist.DataFlowComponentBase):
 	#	# @return RTC::ReturnCode_t
 	#	#
 	#	#
-	#def onDeactivated(self, ec_id):
-	#
-	#	return RTC.RTC_OK
+	def onDeactivated(self, ec_id):
+		del self._proxy
+		return RTC.RTC_OK
 	
 	#	##
 	#	#
@@ -189,9 +197,23 @@ class NAO_memory(OpenRTM_aist.DataFlowComponentBase):
 	#	# @return RTC::ReturnCode_t
 	#	#
 	#	#
-	#def onExecute(self, ec_id):
-	#
-	#	return RTC.RTC_OK
+	def onExecute(self, ec_id):
+		
+		if self._dataIn.isNew():
+			self._d_data = self._dataIn.read()
+			
+			value = self._d_data.data
+
+			if len(self._insert_key[0]) > 0:
+				self._proxy.insertData(self._insert_key[0], value)
+
+		if len(self._extract_key[0]) > 0:
+			value = self._proxy.getData(self._extract_key[0])
+
+			self._d_e_data.data = value
+			self._extOut.write()
+			
+		return RTC.RTC_OK
 	
 	#	##
 	#	#

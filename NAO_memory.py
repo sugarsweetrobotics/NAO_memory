@@ -41,7 +41,10 @@ nao_memory_spec = ["implementation_id", "NAO_memory",
 		 "max_instance",      "1", 
 		 "language",          "Python", 
 		 "lang_type",         "SCRIPT",
-		 "conf.default.key", "nao_memory",
+		 "conf.default.insert_key", "nao_memory",
+		 "conf.default.extract_key", "",
+		   "conf.default.ipaddress", "192.168.252.116",
+		   "conf.default.port", "9559",
 
 		 "conf.__widget__.key", "text",
 
@@ -65,16 +68,16 @@ class NAO_memory(OpenRTM_aist.DataFlowComponentBase):
 		OpenRTM_aist.DataFlowComponentBase.__init__(self, manager)
 
 		data_arg0 = [None] * ((len(RTC._d_TimedString) - 4) / 2)
-		self._d_data = RTC.TimedString(*data_arg0)
+		self._d_w_data = RTC.TimedString(*data_arg0)
 		"""
 		"""
-		self._dataIn = OpenRTM_aist.InPort("data", self._d_data)
+		self._writeDataIn = OpenRTM_aist.InPort("writeData", self._d_w_data)
 
 		data_arg1 = [None] * ((len(RTC._d_TimedString) - 4) / 2)
-		self._d_e_data = RTC.TimedString(*data_arg1)
+		self._d_r_data = RTC.TimedString(*data_arg1)
 		"""
 		"""
-		self._extOut = OpenRTM_aist.OutPort("output", self._d_e_data)
+		self._readDataOut = OpenRTM_aist.OutPort("readData", self._d_r_data)
 
 
 		
@@ -89,6 +92,8 @@ class NAO_memory(OpenRTM_aist.DataFlowComponentBase):
 		"""
 		self._insert_key = ['nao_memory_from_RTM']
 		self._extract_key = ['']
+		self._ipaddress  = ['192.168.252.116']
+		self._port = [9559]
 		
 		# </rtc-template>
 
@@ -104,12 +109,16 @@ class NAO_memory(OpenRTM_aist.DataFlowComponentBase):
 	#
 	def onInitialize(self):
 		# Bind variables and configuration variable
-		self.bindParameter("key", self._key, "nao_memory")
-		
+		self.bindParameter("insert_key", self._insert_key, "nao_memory")
+		self.bindParameter("extract_key", self._extract_key, "")
+		self.bindParameter("ipaddress", self._ipaddress, "192.168.252.116")
+		self.bindParameter("port", self._port, "9559")
+
 		# Set InPort buffers
-		self.addInPort("data",self._dataIn)
-		
+		self.addInPort("writeData",self._writeDataIn)
+
 		# Set OutPort buffers
+		self.addOutPort("readData",self._readDataOut)
 		
 		# Set service provider to Ports
 		
@@ -170,7 +179,7 @@ class NAO_memory(OpenRTM_aist.DataFlowComponentBase):
 	#	#
 	#	#
 	def onActivated(self, ec_id):
-		self._proxy = ALProxy("ALMemory", self._ipaddress[0], self._port[0])
+		self._proxy = naoqi.ALProxy("ALMemory", self._ipaddress[0], self._port[0])
 		return RTC.RTC_OK
 	
 	#	##
@@ -199,10 +208,10 @@ class NAO_memory(OpenRTM_aist.DataFlowComponentBase):
 	#	#
 	def onExecute(self, ec_id):
 		
-		if self._dataIn.isNew():
-			self._d_data = self._dataIn.read()
+		if self._writeDataIn.isNew():
+			self._d_w_data = self._writeDataIn.read()
 			
-			value = self._d_data.data
+			value = self._d_w_data.data
 
 			if len(self._insert_key[0]) > 0:
 				self._proxy.insertData(self._insert_key[0], value)
@@ -210,8 +219,8 @@ class NAO_memory(OpenRTM_aist.DataFlowComponentBase):
 		if len(self._extract_key[0]) > 0:
 			value = self._proxy.getData(self._extract_key[0])
 
-			self._d_e_data.data = value
-			self._extOut.write()
+			self._d_r_data.data = value
+			self._readDataOut.write()
 			
 		return RTC.RTC_OK
 	
